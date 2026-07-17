@@ -355,8 +355,10 @@
     <div class="gallery-grid" id="galleryGrid"></div>
   </div>
 </section>
+</div>
 
-<!-- ---------- ABOUT ---------- -->
+<!-- ---------- PAGE ABOUT ---------- -->
+<div class="page-section" data-page="about">
 <section id="about">
   <h2 class="section-title">About</h2>
   <div class="about-wrap">
@@ -373,8 +375,10 @@
     </div>
   </div>
 </section>
+</div>
 
-<!-- ---------- CONTACT ---------- -->
+<!-- ---------- PAGE CONTACT ---------- -->
+<div class="page-section" data-page="contact">
 <section id="contact">
   <h2 class="section-title">Contact</h2>
   <p class="section-sub">Une question, un projet ? Écrivez-moi.</p>
@@ -397,8 +401,10 @@
     </form>
   </div>
 </section>
+</div>
 
-<!-- ---------- SOCIAL ---------- -->
+<!-- ---------- PAGE SOCIAL ---------- -->
+<div class="page-section" data-page="social">
 <section id="social">
   <h2 class="section-title">Réseaux sociaux</h2>
   <div class="social-icons">
@@ -414,6 +420,7 @@
     <img src="https://placehold.co/300x300/F0919A/ffffff?text=Post+4">
   </div>
 </section>
+</div>
 
 <footer>© <span id="year"></span> Nagrom Studio — Tous droits réservés</footer>
 
@@ -434,7 +441,37 @@ window.addEventListener('scroll', ()=> header.classList.toggle('scrolled', windo
 const burger = document.getElementById('burger');
 const navList = document.getElementById('navList');
 burger.addEventListener('click', ()=> navList.classList.toggle('open'));
-navList.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>navList.classList.remove('open')));
+
+/* ---------- Navigation par pages ---------- */
+const pageSections = document.querySelectorAll('.page-section');
+const navLinks = document.querySelectorAll('[data-page]');
+
+function showPage(name){
+  pageSections.forEach(p => p.classList.toggle('active', p.dataset.page === name));
+  navLinks.forEach(a => a.classList.toggle('active', a.dataset.page === name));
+  window.scrollTo({top:0, behavior:'instant'});
+  history.replaceState(null, '', '#'+name);
+  navList.classList.remove('open');
+  // relance le fade-in des éléments de la page qui vient de s'afficher
+  const activePage = document.querySelector('.page-section.active');
+  if(activePage){
+    activePage.querySelectorAll('.series-card, .about-photos img, .contact-wrap').forEach(el=>{
+      fadeObserver.unobserve(el);
+      fadeObserver.observe(el);
+    });
+  }
+}
+
+navLinks.forEach(link=>{
+  link.addEventListener('click', e=>{
+    e.preventDefault();
+    showPage(link.dataset.page);
+  });
+});
+
+/* page initiale selon l'ancre de l'URL (ex: monsite.com/#contact) */
+const initialPage = (location.hash || '#home').replace('#','');
+showPage(['home','illustrations','about','contact','social'].includes(initialPage) ? initialPage : 'home');
 
 /* Carousel */
 const track = document.getElementById('carouselTrack');
@@ -454,11 +491,11 @@ function goTo(i){
 }
 setInterval(()=>{ goTo((current+1)%slides); }, 4500);
 
-/* Fade-in on scroll (series cards, about photos, contact) */
-const observer = new IntersectionObserver(entries=>{
+/* Fade-in au scroll (cartes séries, photos about, formulaire contact) */
+const fadeObserver = new IntersectionObserver(entries=>{
   entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
 },{threshold:.2});
-document.querySelectorAll('.series-card, .about-photos img, .contact-wrap').forEach(el=>observer.observe(el));
+document.querySelectorAll('.series-card, .about-photos img, .contact-wrap').forEach(el=>fadeObserver.observe(el));
 
 /* Séries -> galerie */
 const seriesData = {
